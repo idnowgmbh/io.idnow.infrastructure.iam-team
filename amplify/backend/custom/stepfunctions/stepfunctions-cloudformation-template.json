@@ -86,7 +86,11 @@
               "ResultPath": "$.grant",
               "Retry": [
                 {
-                  "ErrorEquals": ["ThrottlingException", "ServiceUnavailable", "InternalServerError"],
+                  "ErrorEquals": [
+                    "ThrottlingException",
+                    "ServiceUnavailable",
+                    "InternalServerError"
+                  ],
                   "IntervalSeconds": 3,
                   "BackoffRate": 2,
                   "MaxAttempts": 5
@@ -189,14 +193,20 @@
           }
         },
         "RoleArn": {
-          "Fn::GetAtt": ["TEAMGrantSMRole", "Arn"]
+          "Fn::GetAtt": [
+            "TEAMGrantSMRole",
+            "Arn"
+          ]
         },
         "LoggingConfiguration": {
           "Destinations": [
             {
               "CloudWatchLogsLogGroup": {
                 "LogGroupArn": {
-                  "Fn::GetAtt": ["TEAMStateMachineLogGroup", "Arn"]
+                  "Fn::GetAtt": [
+                    "TEAMStateMachineLogGroup",
+                    "Arn"
+                  ]
                 }
               }
             }
@@ -328,14 +338,20 @@
           }
         },
         "RoleArn": {
-          "Fn::GetAtt": ["TEAMScheduleSMRole", "Arn"]
+          "Fn::GetAtt": [
+            "TEAMScheduleSMRole",
+            "Arn"
+          ]
         },
         "LoggingConfiguration": {
           "Destinations": [
             {
               "CloudWatchLogsLogGroup": {
                 "LogGroupArn": {
-                  "Fn::GetAtt": ["TEAMStateMachineLogGroup", "Arn"]
+                  "Fn::GetAtt": [
+                    "TEAMStateMachineLogGroup",
+                    "Arn"
+                  ]
                 }
               }
             }
@@ -451,14 +467,20 @@
           }
         },
         "RoleArn": {
-          "Fn::GetAtt": ["TEAMRejectSMRole", "Arn"]
+          "Fn::GetAtt": [
+            "TEAMRejectSMRole",
+            "Arn"
+          ]
         },
         "LoggingConfiguration": {
           "Destinations": [
             {
               "CloudWatchLogsLogGroup": {
                 "LogGroupArn": {
-                  "Fn::GetAtt": ["TEAMStateMachineLogGroup", "Arn"]
+                  "Fn::GetAtt": [
+                    "TEAMStateMachineLogGroup",
+                    "Arn"
+                  ]
                 }
               }
             }
@@ -615,7 +637,11 @@
               "ResultPath": "$.revoke",
               "Retry": [
                 {
-                  "ErrorEquals": ["ThrottlingException", "ServiceUnavailable", "InternalServerError"],
+                  "ErrorEquals": [
+                    "ThrottlingException",
+                    "ServiceUnavailable",
+                    "InternalServerError"
+                  ],
                   "IntervalSeconds": 3,
                   "BackoffRate": 2,
                   "MaxAttempts": 5
@@ -679,14 +705,20 @@
           }
         },
         "RoleArn": {
-          "Fn::GetAtt": ["TEAMRevokeSMRole", "Arn"]
+          "Fn::GetAtt": [
+            "TEAMRevokeSMRole",
+            "Arn"
+          ]
         },
         "LoggingConfiguration": {
           "Destinations": [
             {
               "CloudWatchLogsLogGroup": {
                 "LogGroupArn": {
-                  "Fn::GetAtt": ["TEAMStateMachineLogGroup", "Arn"]
+                  "Fn::GetAtt": [
+                    "TEAMStateMachineLogGroup",
+                    "Arn"
+                  ]
                 }
               }
             }
@@ -815,14 +847,20 @@
           }
         },
         "RoleArn": {
-          "Fn::GetAtt": ["TEAMApproveSMRole", "Arn"]
+          "Fn::GetAtt": [
+            "TEAMApproveSMRole",
+            "Arn"
+          ]
         },
         "LoggingConfiguration": {
           "Destinations": [
             {
               "CloudWatchLogsLogGroup": {
                 "LogGroupArn": {
-                  "Fn::GetAtt": ["TEAMStateMachineLogGroup", "Arn"]
+                  "Fn::GetAtt": [
+                    "TEAMStateMachineLogGroup",
+                    "Arn"
+                  ]
                 }
               }
             }
@@ -844,9 +882,13 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": ["states.amazonaws.com"]
+                "Service": [
+                  "states.amazonaws.com"
+                ]
               },
-              "Action": ["sts:AssumeRole"]
+              "Action": [
+                "sts:AssumeRole"
+              ]
             }
           ]
         },
@@ -885,21 +927,28 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
+                  "Action": [
+                    "dynamodb:UpdateItem",
+                    "dynamodb:GetItem"
+                  ],
                   "Resource": {
                     "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requests*"
                   }
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamStatusArn"
                   }
@@ -919,9 +968,13 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": ["states.amazonaws.com"]
+                "Service": [
+                  "states.amazonaws.com"
+                ]
               },
-              "Action": ["sts:AssumeRole"]
+              "Action": [
+                "sts:AssumeRole"
+              ]
             }
           ]
         },
@@ -973,14 +1026,19 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
+                  "Action": [
+                    "dynamodb:UpdateItem",
+                    "dynamodb:GetItem"
+                  ],
                   "Resource": {
                     "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requests*"
                   }
@@ -994,7 +1052,9 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamStatusArn"
                   }
@@ -1014,9 +1074,13 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": ["states.amazonaws.com"]
+                "Service": [
+                  "states.amazonaws.com"
+                ]
               },
-              "Action": ["sts:AssumeRole"]
+              "Action": [
+                "sts:AssumeRole"
+              ]
             }
           ]
         },
@@ -1056,19 +1120,25 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["sso:CreateAccountAssignment"],
+                  "Action": [
+                    "sso:CreateAccountAssignment"
+                  ],
                   "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["dynamodb:UpdateItem"],
+                  "Action": [
+                    "dynamodb:UpdateItem"
+                  ],
                   "Resource": {
                     "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requests*"
                   }
@@ -1095,7 +1165,9 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamStatusArn"
                   }
@@ -1115,9 +1187,13 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": ["states.amazonaws.com"]
+                "Service": [
+                  "states.amazonaws.com"
+                ]
               },
-              "Action": ["sts:AssumeRole"]
+              "Action": [
+                "sts:AssumeRole"
+              ]
             }
           ]
         },
@@ -1156,19 +1232,26 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["sso:DeleteAccountAssignment"],
+                  "Action": [
+                    "sso:DeleteAccountAssignment"
+                  ],
                   "Resource": "*"
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
+                  "Action": [
+                    "dynamodb:UpdateItem",
+                    "dynamodb:GetItem"
+                  ],
                   "Resource": {
                     "Fn::Sub": "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/requests*"
                   }
@@ -1186,7 +1269,9 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamStatusArn"
                   }
@@ -1206,9 +1291,13 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": ["states.amazonaws.com"]
+                "Service": [
+                  "states.amazonaws.com"
+                ]
               },
-              "Action": ["sts:AssumeRole"]
+              "Action": [
+                "sts:AssumeRole"
+              ]
             }
           ]
         },
@@ -1247,14 +1336,18 @@
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamNotificationsArn"
                   }
                 },
                 {
                   "Effect": "Allow",
-                  "Action": ["lambda:InvokeFunction"],
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
                   "Resource": {
                     "Ref": "functionteamStatusArn"
                   }
@@ -1272,7 +1365,10 @@
           "Fn::Sub": "/aws/stepfunction/team-step-function/${env}"
         },
         "KmsKeyId": {
-          "Fn::GetAtt": ["LogGroupKey", "Arn"]
+          "Fn::GetAtt": [
+            "LogGroupKey",
+            "Arn"
+          ]
         },
         "RetentionInDays": 14
       }
@@ -1357,5 +1453,5 @@
       }
     }
   },
-  "Description": "{\"createdOn\":\"Linux\",\"createdBy\":\"Amplify\",\"createdWith\":\"9.2.1\",\"stackType\":\"custom-customCloudformation\",\"metadata\":{}}"
+  "Description": "{\"createdOn\":\"Linux\",\"createdBy\":\"Amplify\",\"createdWith\":\"14.0.0\",\"stackType\":\"custom-customCloudformation\",\"metadata\":{\"whyContinueWithGen1\":\"\"}}"
 }

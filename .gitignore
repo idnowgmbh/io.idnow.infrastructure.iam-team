@@ -77,3 +77,6 @@ terraform.tfstate.backup
 stacks/hub
 .peru
 .tmp
+
+src.egg-info
+amplify/backend/function/teamapplicationboto3layer/lib/python/lib/

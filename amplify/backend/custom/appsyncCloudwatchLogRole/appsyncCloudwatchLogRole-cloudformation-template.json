@@ -10,17 +10,17 @@
       "Type": "AWS::IAM::Role",
       "Properties": {
         "RoleName": {
-              "Fn::Join": [
-                "",
-                [
-                  "AppsyncCloudWatchRole",
-                  "-",
-                  {
-                    "Ref": "env"
-                  }
-                ]
-              ]
-            },
+          "Fn::Join": [
+            "",
+            [
+              "AppsyncCloudWatchRole",
+              "-",
+              {
+                "Ref": "env"
+              }
+            ]
+          ]
+        },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -79,5 +79,6 @@
         }
       }
     }
-  }
+  },
+  "Description": "{\"createdOn\":\"Linux\",\"createdBy\":\"Amplify\",\"createdWith\":\"14.0.0\",\"stackType\":\"custom-customCloudformation\",\"metadata\":{\"whyContinueWithGen1\":\"\"}}"
 }
