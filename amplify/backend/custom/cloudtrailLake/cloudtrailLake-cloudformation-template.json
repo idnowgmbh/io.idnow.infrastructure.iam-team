@@ -1,47 +1,47 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Parameters": {
-    "env": {
-      "Type": "String"
+  "AWSTemplateFormatVersion":"2010-09-09",
+  "Parameters":{
+    "env":{
+      "Type":"String"
     },
-    "CloudTrailAuditLogs": {
-      "Type": "String",
+    "CloudTrailAuditLogs":{
+      "Type":"String",
       "AllowedPattern": "(read_write|read|write|none|arn.*)"
     }
   },
-  "Conditions": {
-    "IsOrganizationsSupported": {
-      "Fn::Not": [
+  "Conditions":{
+    "IsOrganizationsSupported":{
+      "Fn::Not":[
         {
-          "Fn::Equals": [
+          "Fn::Equals":[
             {
-              "Ref": "AWS::Partition"
+              "Ref":"AWS::Partition"
             },
             "aws-cn"
           ]
         }
       ]
     },
-    "IsReadAndWriteEnabled": {
-      "Fn::Equals": [
+    "IsReadAndWriteEnabled":{
+      "Fn::Equals":[
         {
-          "Ref": "CloudTrailAuditLogs"
+          "Ref":"CloudTrailAuditLogs"
         },
         "read_write"
       ]
     },
-    "IsReadOnlyEnabled": {
-      "Fn::Equals": [
+    "IsReadOnlyEnabled":{
+      "Fn::Equals":[
         {
-          "Ref": "CloudTrailAuditLogs"
+          "Ref":"CloudTrailAuditLogs"
         },
         "read"
       ]
     },
-    "IsAuditLogsDisabled": {
-      "Fn::Equals": [
+    "IsAuditLogsDisabled":{
+      "Fn::Equals":[
         {
-          "Ref": "CloudTrailAuditLogs"
+          "Ref":"CloudTrailAuditLogs"
         },
         "none"
       ]
@@ -83,54 +83,54 @@
       ]
     }
   },
-  "Resources": {
-    "myEventDataStore": {
+  "Resources":{
+    "myEventDataStore":{
       "Condition": "CreateEventDataStore",
-      "Type": "AWS::CloudTrail::EventDataStore",
-      "Properties": {
-        "Name": {
-          "Ref": "AWS::StackName"
+      "Type":"AWS::CloudTrail::EventDataStore",
+      "Properties":{
+        "Name":{
+          "Ref":"AWS::StackName"
         },
-        "MultiRegionEnabled": true,
-        "IngestionEnabled": {
-          "Fn::If": [
+        "MultiRegionEnabled":true,
+        "IngestionEnabled":{
+          "Fn::If":[
             "IsAuditLogsDisabled",
             false,
             true
           ]
         },
-        "RetentionPeriod": 7,
-        "OrganizationEnabled": {
-          "Fn::If": [
+        "RetentionPeriod":7,
+        "OrganizationEnabled":{
+          "Fn::If":[
             "IsOrganizationsSupported",
             true,
             {
-              "Ref": "AWS::NoValue"
+              "Ref":"AWS::NoValue"
             }
           ]
         },
-        "TerminationProtectionEnabled": false,
-        "AdvancedEventSelectors": [
+        "TerminationProtectionEnabled":false,
+        "AdvancedEventSelectors":[
           {
-            "Fn::If": [
+            "Fn::If":[
               "IsReadAndWriteEnabled",
               {
-                "FieldSelectors": [
+                "FieldSelectors":[
                   {
-                    "Field": "eventCategory",
-                    "Equals": [
+                    "Field":"eventCategory",
+                    "Equals":[
                       "Management"
                     ]
                   }
                 ]
               },
               {
-                "FieldSelectors": [
+                "FieldSelectors":[
                   {
-                    "Field": "readOnly",
-                    "Equals": [
+                    "Field":"readOnly",
+                    "Equals":[
                       {
-                        "Fn::If": [
+                        "Fn::If":[
                           "IsReadOnlyEnabled",
                           true,
                           false
@@ -139,8 +139,8 @@
                     ]
                   },
                   {
-                    "Field": "eventCategory",
-                    "Equals": [
+                    "Field":"eventCategory",
+                    "Equals":[
                       "Management"
                     ]
                   }
@@ -152,9 +152,9 @@
       }
     }
   },
-  "Outputs": {
-    "EventDataStoreOutput": {
-      "Description": "The event data store ID",
+  "Outputs":{
+    "EventDataStoreOutput":{
+      "Description":"The event data store ID",
       "Value": {
         "Fn::If": [
           "CreateEventDataStore",
@@ -167,6 +167,5 @@
         ]
       }
     }
-  },
-  "Description": "{\"createdOn\":\"Linux\",\"createdBy\":\"Amplify\",\"createdWith\":\"14.0.0\",\"stackType\":\"custom-customCloudformation\",\"metadata\":{\"whyContinueWithGen1\":\"\"}}"
+  }
 }

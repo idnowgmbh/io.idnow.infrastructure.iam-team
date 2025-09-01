@@ -1,4 +1,4 @@
 {
-    "teamAdminGroup": "AWS_Sandbox_TEAM_admins",
-    "teamAuditorGroup": "AWS_Sandbox_TEAM_auditors"
+    "teamAdminGroup": "team-admin",
+    "teamAuditorGroup": "team auditor"
 }

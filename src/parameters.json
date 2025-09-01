@@ -1,6 +1,4 @@
 {
-    "DeploymentType": "delegated",
-    "teamAdminGroup": "AWS_Sandbox_TEAM_admins",
-    "teamAuditorGroup": "AWS_Sandbox_TEAM_auditors",
-    "Login": "https://d-99675678f2.awsapps.com/start"
+  "Login": "sso login URL",
+  "DeploymentType": "deployment type"
 }
