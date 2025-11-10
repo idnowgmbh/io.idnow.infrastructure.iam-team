@@ -562,7 +562,6 @@ function Eligible(props) {
             accounts: account.map(({ value, label }) => ({name: label, id: value})),
             permissions: permission.map(({ value,label }) => ({name: label, id: value})),
             ous: ou.map(({ value,label }) => ({name: label, id: value})),
-            id: item.value,
             ticketNo: ticketNo,
             approvalRequired: approvalRequired,
             duration: duration
