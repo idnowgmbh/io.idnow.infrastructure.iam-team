@@ -5,7 +5,6 @@
 import React, { useEffect, useState } from "react";
 import AppLayout from "@awsui/components-react/app-layout";
 import Navigation from "./Navigation";
-import ToolsDrawer from "./ToolsDrawer";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Flashbar from "@awsui/components-react/flashbar";
 import Request from "../Requests/Request";
