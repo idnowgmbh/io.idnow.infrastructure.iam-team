@@ -135,21 +135,6 @@ function Landing(props) {
               >
                 How it works
               </Box>
-              <Container className="picbox">
-                <div>
-                  <img src={team} alt="team" className="pic" />
-                </div>
-              </Container>
-            </div>
-
-            <div>
-              <Box
-                variant="h1"
-                tagOverride="h2"
-                padding={{ bottom: "s", top: "n" }}
-              >
-                Benefits and features
-              </Box>
               <Container>
                 <ColumnLayout columns={2} variant="text-grid">
                   <div>

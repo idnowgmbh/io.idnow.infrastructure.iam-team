@@ -84,6 +84,25 @@ const COLUMN_DEFINITIONS = [
     ),
     width: 300,
   },
+  {
+    id: "permissions",
+    sortingField: "permissions",
+    header: "Permission sets",
+    cell: (item) => (
+      <TextContent>
+        {item.permissions && item.permissions.length > 0 ? (
+          <ul>
+            {item.permissions.map((perm) => (
+              <li key={perm.id}>{perm.name}</li>
+            ))}
+          </ul>
+        ) : (
+          "All"
+        )}
+      </TextContent>
+    ),
+    width: 250,
+  },
 ];
 
 const MyCollectionPreferences = ({ preferences, setPreferences }) => {
@@ -107,7 +126,7 @@ const MyCollectionPreferences = ({ preferences, setPreferences }) => {
         description: "Check to see all the text and wrap the lines",
       }}
       visibleContentPreference={{
-        title: "Select visible columns",
+        title: "Select visible columns",
         options: [
           {
             label: "Request properties",
@@ -117,6 +136,7 @@ const MyCollectionPreferences = ({ preferences, setPreferences }) => {
               { id: "type", label: "type" },
               { id: "ticketNo", label: "ticketNo" },
               { id: "approvers", label: "approvers" },
+              { id: "permissions", label: "permissions" },
             ],
           },
         ],
@@ -152,6 +172,7 @@ function Approvers(props) {
       "type",
       "ticketNo",
       "approvers",
+      "permissions",
     ],
   });
 
@@ -330,6 +351,9 @@ function Approvers(props) {
           approvers: approver.map(({ label }) => label),
           groupIds: approver.map(({ value }) => value),
           ticketNo: ticketNo,
+          permissions: selectedPermissions.length > 0 
+            ? selectedPermissions.map(ps => ({ name: ps.label, id: ps.value }))
+            : []
         };
         editApprover(data).then(() => {
           views();
@@ -357,6 +381,18 @@ function Approvers(props) {
         };
       })
     );
+    // Load existing permissions if they exist
+    if (selectedItems[0].permissions && selectedItems[0].permissions.length > 0) {
+      setSelectedPermissions(
+        selectedItems[0].permissions.map((perm) => ({
+          label: perm.name,
+          value: perm.id,
+          description: perm.id,
+        }))
+      );
+    } else {
+      setSelectedPermissions([]);
+    }
     setEditVisible(true);
   }
 
@@ -813,6 +849,30 @@ function Approvers(props) {
                   setTicketError();
                   setTicketNo(event.detail.value);
                 }}
+              />
+            </FormField>
+            <FormField
+              label="Permission Sets (Optional)"
+              stretch
+              description="Leave empty to approve all roles, or select specific permission sets this approver group can approve"
+            >
+              <Multiselect
+                statusType={permissionSetStatus}
+                placeholder="Select permission sets (optional - empty means all)"
+                loadingText="Loading permission sets"
+                filteringType="auto"
+                empty="No options"
+                options={permissionSets.map((ps) => ({
+                  label: ps.Name,
+                  value: ps.Arn,
+                  description: ps.Arn,
+                }))}
+                selectedOptions={selectedPermissions}
+                onChange={({ detail }) => {
+                  setSelectedPermissions(detail.selectedOptions);
+                }}
+                selectedAriaLabel="selected"
+                deselectAriaLabel={(e) => `Remove ${e.label}`}
               />
             </FormField>
             <FormField

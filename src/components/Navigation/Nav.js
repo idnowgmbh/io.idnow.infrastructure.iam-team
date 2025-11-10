@@ -75,7 +75,6 @@ function Nav(props) {
                 cognitoGroups={cognitoGroups}
               />
             }
-            tools={<ToolsDrawer></ToolsDrawer>}
             content={
               <Switch>
                 <Route

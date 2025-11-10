@@ -21,13 +21,6 @@ function Home(props) {
       <Header className="site-layout-background" style={{ padding: 0 }} />
       <Content className="layout">
         <Spin spinning={props.loading} size="large">
-          <Button
-            className="homebutton"
-            variant="primary"
-            onClick={() => Auth.federatedSignIn()}
-          >
-            Federated Sign In
-          </Button>
           <img src={home} alt="Homepage" className="home" />
         </Spin>
       </Content>

@@ -229,6 +229,11 @@ export const getApprovers = /* GraphQL */ `
       groupIds
       ticketNo
       modifiedBy
+      permissions {
+        name
+        id
+        __typename
+      }
       createdAt
       updatedAt
       __typename
@@ -250,6 +255,11 @@ export const listApprovers = /* GraphQL */ `
         groupIds
         ticketNo
         modifiedBy
+        permissions {
+          name
+          id
+          __typename
+        }
         createdAt
         updatedAt
         __typename

@@ -50,13 +50,6 @@ function Header(props) {
         utilities={[
           {
             type: "button",
-            text: "IAM Identity Center",
-            href: `${params.Login}`,
-            external: true,
-            externalIconAriaLabel: " (opens in a new tab)",
-          },
-          {
-            type: "button",
             iconName: "notification",
             title: "Notifications",
             ariaLabel: "Notifications (unread)",
@@ -67,7 +60,7 @@ function Header(props) {
           {
             type: "button",
             text: "v1.5.0",
-            href: "https://github.com/aws-samples/iam-identity-center-team/releases/tag/v1.5.0",
+            href: "https://github.com/idnowgmbh/io.idnow.infrastructure.iam-team",
             external: true,
             externalIconAriaLabel: " (opens in a new tab)",
           },
@@ -82,35 +75,7 @@ function Header(props) {
               }
             },
             items: [
-              { id: "signout", text: "Sign out" },
-              {
-                id: "support-group",
-                text: "Support",
-                items: [
-                  {
-                    id: "documentation",
-                    text: "Documentation",
-                    href: "https://aws-samples.github.io/iam-identity-center-team/",
-                    external: true,
-                    externalIconAriaLabel: " (opens in new tab)",
-                  },
-                  { id: "support", text: "Support" },
-                  {
-                    id: "feedback",
-                    text: "Feedback",
-                    href: "https://pulse.aws/survey/PZDTVK85",
-                    external: true,
-                    externalIconAriaLabel: " (opens in new tab)",
-                  },
-                  {
-                    id: "bug",
-                    text: "Report Bug",
-                    href: "https://github.com/aws-samples/iam-identity-center-team/issues",
-                    external: true,
-                    externalIconAriaLabel: " (opens in new tab)",
-                  },
-                ],
-              },
+              { id: "signout", text: "Sign out" }
             ],
           },
         ]}
