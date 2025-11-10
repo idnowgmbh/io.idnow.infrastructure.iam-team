@@ -26,7 +26,7 @@ import {
 import { useCollection } from "@awsui/collection-hooks";
 import Ous from "../Shared/Ous";
 import { API, graphqlOperation } from "aws-amplify";
-import { onPublishOUs } from "../../graphql/subscriptions";
+import { onPublishOUs, onPublishPermissions } from "../../graphql/subscriptions";
 import {
   getAllApprovers,
   fetchAccounts,
@@ -401,10 +401,17 @@ function Approvers(props) {
   function getPermissionSets() {
     setPermissionSetStatus("loading");
     fetchPermissions().then((data) => {
-      if (data && data.permissions) {
-        setPermissionSets(data.permissions);
-      }
-      setPermissionSetStatus("finished");
+      const subscription = API.graphql(
+        graphqlOperation(onPublishPermissions)
+      ).subscribe({
+        next: (result) => {
+          if (result.value.data.onPublishPermissions.id === data.id) {
+            setPermissionSets(result.value.data.onPublishPermissions.permissions);
+            setPermissionSetStatus("finished");
+            subscription.unsubscribe();
+          }
+        },
+      });
     });
   }
 
