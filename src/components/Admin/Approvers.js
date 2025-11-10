@@ -35,7 +35,8 @@ import {
   delApprover,
   editApprover,
   fetchIdCGroups,
-  getSetting
+  getSetting,
+  fetchPermissions
 } from "../Shared/RequestService";
 import "../../index.css";
 
@@ -256,11 +257,16 @@ function Approvers(props) {
   const [approver, setApprover] = useState([]);
   const [ticketRequired, setTicketRequired] = useState(true);
 
+  const [permissionSets, setPermissionSets] = useState([]);
+  const [permissionSetStatus, setPermissionSetStatus] = useState("finished");
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+
 
   useEffect(() => {
     views();
     props.addNotification([]);
     getGroups();
+    getPermissionSets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -392,6 +398,16 @@ function Approvers(props) {
     });
   }
 
+  function getPermissionSets() {
+    setPermissionSetStatus("loading");
+    fetchPermissions().then((data) => {
+      if (data && data.permissions) {
+        setPermissionSets(data.permissions);
+      }
+      setPermissionSetStatus("finished");
+    });
+  }
+
   const onResourceChange = (value) => {
     setResource(value);
   };
@@ -430,6 +446,9 @@ function Approvers(props) {
             groupIds: approver.map(({ value }) => value),
             id: item.value,
             ticketNo: ticketNo,
+            permissions: selectedPermissions.length > 0 
+              ? selectedPermissions.map(ps => ({ name: ps.label, id: ps.value }))
+              : []
           };
           addApprovers(data).then(() => {
             views();
@@ -459,6 +478,7 @@ function Approvers(props) {
     setApproverError("");
     setTicketNo("");
     setTicketError("");
+    setSelectedPermissions([]);
   }
 
   const ValueWithLabel = ({ label, children }) => (
@@ -650,6 +670,30 @@ function Approvers(props) {
                   setTicketError();
                   setTicketNo(event.detail.value);
                 }}
+              />
+            </FormField>
+            <FormField
+              label="Permission Sets (Optional)"
+              stretch
+              description="Leave empty to approve all roles, or select specific permission sets this approver group can approve"
+            >
+              <Multiselect
+                statusType={permissionSetStatus}
+                placeholder="Select permission sets (optional - empty means all)"
+                loadingText="Loading permission sets"
+                filteringType="auto"
+                empty="No options"
+                options={permissionSets.map((ps) => ({
+                  label: ps.Name,
+                  value: ps.Arn,
+                  description: ps.Arn,
+                }))}
+                selectedOptions={selectedPermissions}
+                onChange={({ detail }) => {
+                  setSelectedPermissions(detail.selectedOptions);
+                }}
+                selectedAriaLabel="selected"
+                deselectAriaLabel={(e) => `Remove ${e.label}`}
               />
             </FormField>
             <FormField

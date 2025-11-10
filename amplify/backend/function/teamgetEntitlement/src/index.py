@@ -101,9 +101,24 @@ def list_account_for_ou(ouId):
         print(e.response["Error"]["Message"])
 
 
-def get_entitlements(id):
-    response = policy_table.get_item(Key={"id": id})
-    return response
+def get_all_entitlements_for_entity(entity_id):
+    """
+    Get all eligibility policies for a given user/group ID.
+    Since the same user/group can have multiple policies, we need to scan
+    the table to find all records where the 'id' field matches the entity_id.
+    """
+    try:
+        # Scan the table with a filter expression
+        response = policy_table.scan(
+            FilterExpression='id = :entity_id',
+            ExpressionAttributeValues={
+                ':entity_id': entity_id
+            }
+        )
+        return response.get('Items', [])
+    except ClientError as e:
+        print(f"Error scanning for entitlements: {e.response['Error']['Message']}")
+        return []
 
 
 def handler(event, context):
@@ -118,25 +133,34 @@ def handler(event, context):
     for id in [userId] + groupIds:
         if not id:
             continue
-        entitlement = get_entitlements(id)
-        print(entitlement)
-        if "Item" not in entitlement.keys():
+        
+        # Get ALL entitlements for this user/group
+        entitlements = get_all_entitlements_for_entity(id)
+        print(f"Found {len(entitlements)} entitlement(s) for {id}")
+        
+        if not entitlements:
             continue
-        duration = entitlement["Item"]["duration"]
-        if int(duration) > maxDuration:
-            maxDuration = int(duration)
-        policy = {}
-        policy["accounts"] = entitlement["Item"]["accounts"]
+            
+        # Process each entitlement policy
+        for entitlement in entitlements:
+            duration = entitlement.get("duration", "0")
+            if int(duration) > maxDuration:
+                maxDuration = int(duration)
+            
+            policy = {}
+            policy["accounts"] = entitlement.get("accounts", [])
 
-        for ou in entitlement["Item"]["ous"]:
-            data = list_account_for_ou(ou["id"])
-            policy["accounts"].extend(data)
+            # Expand OUs to accounts
+            for ou in entitlement.get("ous", []):
+                data = list_account_for_ou(ou["id"])
+                policy["accounts"].extend(data)
 
-        policy["permissions"] = entitlement["Item"]["permissions"]
-        policy["approvalRequired"] = entitlement["Item"]["approvalRequired"]
-        policy["duration"] = str(maxDuration)
-        eligibility.append(policy)
-    result = {"id": event["id"], "policy": eligibility, "username":username}
+            policy["permissions"] = entitlement.get("permissions", [])
+            policy["approvalRequired"] = entitlement.get("approvalRequired", True)
+            policy["duration"] = str(maxDuration)
+            eligibility.append(policy)
+            
+    result = {"id": event["id"], "policy": eligibility, "username": username}
     print(result)
 
     return publishPolicy(result)

@@ -151,6 +151,7 @@ type Approvers
   groupIds: [String]
   ticketNo: String
   modifiedBy: String
+  permissions: [data]
 }
 type Settings
   @model
@@ -373,4 +374,3 @@ type Query {
     @function(name: "teamvalidateRequest-${env}")
     @auth(rules: [{ allow: private }])
 }
-

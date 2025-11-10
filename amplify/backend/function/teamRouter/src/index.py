@@ -264,32 +264,37 @@ def eligibility_error(request):
     
 def get_eligibility(request, userId):
     eligible = False
-    # Initially assume approval is required
-    approvalRequired = True
+    # Track if we found any matching policies and their approval requirements
+    # Most restrictive wins: if ANY matching policy requires approval, approval is required
+    matching_policies = []
     groupIds = [group['GroupId'] for group in list_idc_group_membership(userId)]
     entitlement = getEntitlements(userId=userId, groupIds=groupIds)
     print(entitlement)
     max_duration_error = True
+    
     for eligibility in entitlement:
         if int(request["time"]) <= int(eligibility["duration"]):
             max_duration_error = False
         for account in eligibility["accounts"]:
-            if request["accountId"] ==  account["id"]:
+            if request["accountId"] == account["id"]:
                 for permission in eligibility["permissions"]:
                     if request["roleId"] == permission["id"]:
                         eligible = True
-                        # Only need a single eligibility to not require approval to
-                        # bypass approval for this request.
-                        if not eligibility["approvalRequired"]:
-                            approvalRequired = False
+                        # Track this matching policy's approval requirement
+                        matching_policies.append(eligibility["approvalRequired"])
 
     if max_duration_error:
         print("Error - Invalid Duration")
-        return eligibility_error(request) 
+        return eligibility_error(request)
+    
     if eligible:
+        # Most restrictive wins: if ANY matching policy requires approval, require it
+        # If no matching policies found, default to requiring approval (safe default)
+        approvalRequired = any(matching_policies) if matching_policies else True
+        print(f"Found {len(matching_policies)} matching policies. Approval required: {approvalRequired}")
         return {"approval": approvalRequired}
     else:
-        return eligibility_error(request)          
+        return eligibility_error(request)
 
 def check_settings():
     settings = get_settings()
@@ -389,26 +394,76 @@ async def getPsDuration(ps):
     )
     return response['PermissionSet']['SessionDuration']
 
-def list_approvers(id):
+def list_approvers(id, roleId=None):
+    """
+    Get approver group IDs for a given account/OU ID.
+    If roleId is provided, filter to only return approvers that can approve that role.
+    
+    Args:
+        id: Account ID or OU ID
+        roleId: Optional permission set ARN to filter approvers
+    
+    Returns:
+        List of approver group IDs
+    """
     try:
-        response = approver_table.get_item(
-            Key={
-                'id': id
+        # Query all approval policies for this account/OU
+        response = approver_table.query(
+            KeyConditionExpression='id = :id',
+            ExpressionAttributeValues={
+                ':id': id
             }
         )
-        if "Item" in response.keys():
-            return (response['Item']['groupIds'])
-        else:
-            return []
-    except ClientError as e:
-        print(e.response['Error']['Message'])
         
-def get_approver_group_ids(accountId):
+        approver_groups = []
+        
+        if "Items" in response:
+            for item in response['Items']:
+                permissions = item.get('permissions', [])
+                
+                # If no permissions specified, this policy applies to all roles (backward compatible)
+                if not permissions or len(permissions) == 0:
+                    approver_groups.extend(item.get('groupIds', []))
+                # If roleId is provided and permissions are specified, check if roleId matches
+                elif roleId:
+                    permission_ids = [p.get('id') for p in permissions if p.get('id')]
+                    if roleId in permission_ids:
+                        approver_groups.extend(item.get('groupIds', []))
+                # If roleId is not provided but permissions are specified, include all
+                else:
+                    approver_groups.extend(item.get('groupIds', []))
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_approvers = []
+        for group_id in approver_groups:
+            if group_id not in seen:
+                seen.add(group_id)
+                unique_approvers.append(group_id)
+        
+        return unique_approvers
+        
+    except ClientError as e:
+        print(f"Error querying approvers for {id}: {e.response['Error']['Message']}")
+        raise
+        
+def get_approver_group_ids(accountId, roleId=None):
+    """
+    Get all approver group IDs for an account, including from parent OU.
+    Filters by roleId if provided.
+    
+    Args:
+        accountId: AWS Account ID
+        roleId: Optional permission set ARN to filter approvers
+    
+    Returns:
+        List of unique approver group IDs
+    """
     approvers = []
-    approvers.extend(list_approvers(accountId))
+    approvers.extend(list_approvers(accountId, roleId))
     ou = get_ou(accountId)
     if ou:
-        approvers.extend(list_approvers(ou["Id"]))
+        approvers.extend(list_approvers(ou["Id"], roleId))
     return approvers
 
 def get_approvers(userId):
@@ -438,8 +493,19 @@ def list_group_membership(groupId):
     except ClientError as e:
         print(e.response['Error']['Message'])
         
-async def get_approvers_details(accountId):
-    approver_groups = get_approver_group_ids(accountId)
+async def get_approvers_details(accountId, roleId=None):
+    """
+    Get approver details (emails and IDs) for an account.
+    Filters by roleId if provided.
+    
+    Args:
+        accountId: AWS Account ID
+        roleId: Optional permission set ARN to filter approvers
+    
+    Returns:
+        Dictionary with approvers list and approver_ids list
+    """
+    approver_groups = get_approver_group_ids(accountId, roleId)
     approvers = []
     approver_ids = []
     if approver_groups:
@@ -454,7 +520,7 @@ async def get_approvers_details(accountId):
 
 async def updateRequestDetails(request_id, username, accountId, roleId):
     email = get_email(username)
-    approver_details = await get_approvers_details(accountId)
+    approver_details = await get_approvers_details(accountId, roleId)
     approver_ids = approver_details["approver_ids"]
     approvers = approver_details["approvers"]
     session_duration = await getPsDuration(roleId)
@@ -530,4 +596,3 @@ def handler(event, context):
             invoke_workflow(request, approval_required, notification_config, team_config)
     else:
         print("Request not updated")
-        

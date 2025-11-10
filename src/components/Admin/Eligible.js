@@ -751,7 +751,7 @@ function Eligible(props) {
                     label: user.UserName,
                     value: user.UserId,
                     description: user.UserId,
-                    disabled: allItems.map(({ id }) => id).includes(user.UserId),
+                    disabled: false,
                   }))}
                   selectedOptions={resource}
                   onChange={(event) => {
@@ -780,7 +780,7 @@ function Eligible(props) {
                     label: group.DisplayName,
                     value: group.GroupId,
                     description: group.GroupId,
-                    disabled: allItems.map(({ id }) => id).includes(group.GroupId),
+                    disabled: false,
                   }))}
                   selectedOptions={resource}
                   onChange={(event) => {
