@@ -64,6 +64,7 @@ function Nav(props) {
           </div>
           <AppLayout
             className="main"
+            toolsHide={true}
             notifications={<Flashbar items={notifications} />}
             navigation={
               <Navigation

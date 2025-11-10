@@ -333,6 +333,7 @@ export const getEligibility = /* GraphQL */ `
       id
       name
       type
+      entityId
       accounts {
         name
         id
@@ -369,6 +370,7 @@ export const listEligibilities = /* GraphQL */ `
         id
         name
         type
+        entityId
         accounts {
           name
           id

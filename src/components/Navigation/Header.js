@@ -43,7 +43,7 @@ function Header(props) {
         identity={{
           href: "/",
           logo: {
-            src: "./logo.png",
+            src: "/logo.png",
             alt: "TEAM",
           },
         }}

@@ -322,6 +322,7 @@ export const createEligibility = /* GraphQL */ `
       id
       name
       type
+      entityId
       accounts {
         name
         id
@@ -356,6 +357,7 @@ export const updateEligibility = /* GraphQL */ `
       id
       name
       type
+      entityId
       accounts {
         name
         id
