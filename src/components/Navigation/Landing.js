@@ -13,7 +13,6 @@ import Grid from "@awsui/components-react/grid";
 import SpaceBetween from "@awsui/components-react/space-between";
 // import Link from "@awsui/components-react/link";
 import Select from "@awsui/components-react/select";
-import team from "../../media/team.png";
 import "../../media/landing-page.css";
 
 const selections = [
