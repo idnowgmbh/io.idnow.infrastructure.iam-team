@@ -559,6 +559,7 @@ function Eligible(props) {
           const data = {
             type: Type.value,
             name: item.label,
+            entityId: item.value,
             accounts: account.map(({ value, label }) => ({name: label, id: value})),
             permissions: permission.map(({ value,label }) => ({name: label, id: value})),
             ous: ou.map(({ value,label }) => ({name: label, id: value})),

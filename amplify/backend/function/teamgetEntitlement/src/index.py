@@ -104,20 +104,21 @@ def list_account_for_ou(ouId):
 def get_all_entitlements_for_entity(entity_id):
     """
     Get all eligibility policies for a given user/group ID.
-    Since the same user/group can have multiple policies, we need to scan
-    the table to find all records where the 'id' field matches the entity_id.
+    Since the same user/group can have multiple policies, we use the
+    GSI 'byEntityId' to efficiently query all records for this entity.
     """
     try:
-        # Scan the table with a filter expression
-        response = policy_table.scan(
-            FilterExpression='id = :entity_id',
+        # Query using the GSI
+        response = policy_table.query(
+            IndexName='byEntityId',
+            KeyConditionExpression='entityId = :entity_id',
             ExpressionAttributeValues={
                 ':entity_id': entity_id
             }
         )
         return response.get('Items', [])
     except ClientError as e:
-        print(f"Error scanning for entitlements: {e.response['Error']['Message']}")
+        print(f"Error querying for entitlements: {e.response['Error']['Message']}")
         return []
 
 

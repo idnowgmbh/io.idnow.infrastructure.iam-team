@@ -200,6 +200,11 @@ type Eligibility
   id: ID
   name: String
   type: String
+  entityId: String
+    @index(
+      name: "byEntityId"
+      queryField: "eligibilityByEntityId"
+    )
   accounts: [data]
   ous: [data]
   permissions: [data]
