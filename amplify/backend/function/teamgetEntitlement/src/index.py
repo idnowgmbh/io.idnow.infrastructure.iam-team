@@ -6,6 +6,7 @@ import json
 import os
 from botocore.exceptions import ClientError
 import boto3
+from boto3.dynamodb.conditions import Key
 import requests
 from requests_aws_sign import AWSV4Sign
 
@@ -111,10 +112,7 @@ def get_all_entitlements_for_entity(entity_id):
         # Query using the GSI
         response = policy_table.query(
             IndexName='byEntityId',
-            KeyConditionExpression='entityId = :entity_id',
-            ExpressionAttributeValues={
-                ':entity_id': entity_id
-            }
+            KeyConditionExpression=Key('entityId').eq(entity_id)
         )
         return response.get('Items', [])
     except ClientError as e:
