@@ -206,25 +206,7 @@ type Eligibility
   duration: String
   modifiedBy: String
 }
-<<<<<<< HEAD
 type Accounts {
-=======
-type OUAccountsCache
-  @model(subscriptions: null, queries: null, mutations: null)
-  # Intentionally has no @auth rules. This model exists only so Amplify provisions
-  # the cache table (and its TTL); queries, mutations and subscriptions are all null,
-  # so no resolvers are generated and there is nothing to authorize. The table is
-  # read and written directly via the DynamoDB SDK by teamgetOUAccounts and
-  # teaminvalidateOUCache, which receive the table name through CACHE_TABLE_NAME.
-  {
-  ou_id: ID! @primaryKey
-  accounts: AWSJSON
-  cached_at: AWSTimestamp
-  ttl: AWSTimestamp @ttl
-  status: String
-}
-type Accounts @aws_iam @aws_cognito_user_pools {
->>>>>>> 716b748 (fix: remove identity-pool IAM auth rules that bypassed TEAM's authorization model (#605))
   name: String!
   id: String!
 }
@@ -318,9 +300,6 @@ type Mutation {
   publishOUs(result: OUsInput): OUs
   @auth(rules: [{ allow: private }])
   publishPermissions(result: PermissionInput): Permission
-<<<<<<< HEAD
-  @auth(rules: [{ allow: private, provider: iam} { allow: private }])
-=======
   @auth(rules: [{ allow: private }])
   invalidateOUCache(ouIds: [String]!): InvalidateCacheResult
   @function(name: "teaminvalidateOUCache-${env}")
@@ -328,7 +307,6 @@ type Mutation {
   validateRequest(accountId: String!, roleId: String!, userId: String!, groupIds: [String]!): RequestValidationResult
   @function(name: "teamvalidateRequest-${env}")
   @auth(rules: [{ allow: private }])
->>>>>>> 716b748 (fix: remove identity-pool IAM auth rules that bypassed TEAM's authorization model (#605))
 }
 
 type Subscription {
@@ -395,10 +373,6 @@ type Query {
   updateRequestData: requests
     @function(name: "teamupdateRequest-${env}")
     @auth(rules: [{ allow: private }])
-<<<<<<< HEAD
-  validateRequest: requests
-    @function(name: "teamvalidateRequest-${env}")
-=======
   validateRequest(accountId: String!, roleId: String!, userId: String!, groupIds: [String]!): RequestValidationResult
   @function(name: "teamvalidateRequest-${env}")
   @auth(rules: [{ allow: private }])
@@ -406,6 +380,5 @@ type Query {
     ouIds: [String]!
   ): OUAccountsBatch
     @function(name: "teamgetOUAccounts-${env}")
->>>>>>> 716b748 (fix: remove identity-pool IAM auth rules that bypassed TEAM's authorization model (#605))
     @auth(rules: [{ allow: private }])
 }
