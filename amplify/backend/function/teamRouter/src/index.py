@@ -57,22 +57,18 @@ def list_account_for_ou(ouId):
         print(e.response['Error']['Message'])
 
 
-def get_entitlements(id):
-    response = policy_table.get_item(
-        Key={
-            'id': id
-        }
-    )
-    return response
+def get_entitlements(entity_id):
+    """Query all eligibility policies for a given user/group ID using the byEntityId GSI."""
+    try:
+        response = policy_table.query(
+            IndexName='byEntityId',
+            KeyConditionExpression=Key('entityId').eq(entity_id)
+        )
+        return response.get('Items', [])
+    except ClientError as e:
+        print(f"Error querying entitlements for {entity_id}: {e.response['Error']['Message']}")
+        return []
 
-
-def get_settings():
-    response = settings_table.get_item(
-        Key={
-            'id': 'settings'
-        }
-    )
-    return response
 
 def getEntitlements(userId, groupIds):
     eligibility = []
@@ -80,24 +76,24 @@ def getEntitlements(userId, groupIds):
     for id in [userId] + groupIds:
         if not id:
             continue
-        entitlement = get_entitlements(id)
-        if "Item" not in entitlement.keys():
+        entitlements = get_entitlements(id)
+        if not entitlements:
             continue
-        duration = entitlement['Item']['duration']
-        if int(duration) > maxDuration:
-            maxDuration = int(duration)
-        policy = {}
-        policy['accounts'] = entitlement['Item']['accounts']
-        
-        for ou in entitlement["Item"]["ous"]:
-            data = list_account_for_ou(ou["id"])
-            policy['accounts'].extend(data)
-            
-        policy['permissions'] = entitlement['Item']['permissions']
-        policy['approvalRequired'] = entitlement['Item']['approvalRequired']
-        policy['duration'] = str(maxDuration)
-        
-        eligibility.append(policy)
+        for entitlement in entitlements:
+            duration = entitlement.get('duration', '0')
+            if int(duration) > maxDuration:
+                maxDuration = int(duration)
+            policy = {}
+            policy['accounts'] = entitlement.get('accounts', [])
+
+            for ou in entitlement.get("ous", []):
+                data = list_account_for_ou(ou["id"])
+                policy['accounts'].extend(data)
+
+            policy['permissions'] = entitlement.get('permissions', [])
+            policy['approvalRequired'] = entitlement.get('approvalRequired', True)
+            policy['duration'] = str(maxDuration)
+            eligibility.append(policy)
 
     return eligibility
 
@@ -296,6 +292,14 @@ def get_eligibility(request, userId):
         return {"approval": approvalRequired}
     else:
         return eligibility_error(request)
+
+def get_settings():
+    response = settings_table.get_item(
+        Key={
+            'id': 'settings'
+        }
+    )
+    return response
 
 def check_settings():
     settings = get_settings()
