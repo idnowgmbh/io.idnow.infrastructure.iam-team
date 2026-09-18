@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from requests_aws_sign import AWSV4Sign
 import asyncio
 from botocore.config import Config
+from boto3.dynamodb.conditions import Key
     
 policy_table_name = os.getenv("POLICY_TABLE_NAME")
 settings_table_name = os.getenv("SETTINGS_TABLE_NAME")
@@ -435,10 +436,7 @@ def list_approvers(id, roleId=None):
     try:
         # Query all approval policies for this account/OU
         response = approver_table.query(
-            KeyConditionExpression='id = :id',
-            ExpressionAttributeValues={
-                ':id': id
-            }
+            KeyConditionExpression=Key('id').eq(id)
         )
         
         approver_groups = []
