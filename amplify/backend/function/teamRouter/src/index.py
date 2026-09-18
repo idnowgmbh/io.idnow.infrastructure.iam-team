@@ -497,10 +497,14 @@ def get_approvers(userId):
         UserId=userId
     )
     approver_id = "idc_" + response['UserName']
-    for email in response['Emails']:
+    approver = None
+    for email in response.get('Emails', []):
         if email:
             approver = email["Value"]
             break
+    if not approver:
+        print(f"Warning: no email found for userId {userId}, using username as fallback")
+        approver = response['UserName']
     return {"approver_id": approver_id, "approver": approver}
 
 def list_group_membership(groupId):
