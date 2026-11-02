@@ -1,34 +1,54 @@
-# ---------------------------------------------------------------------------
-# RECONSTRUCTED FROM AMPLIFY BUILD LOGS - VERIFY BEFORE MERGING.
+# Amplify build spec.
 #
-# Amplify prefers this in-repo amplify.yml over the build spec configured in
-# the Amplify console. Committing an inexact copy would silently change how
-# deployments run. Before relying on this file:
+# Mirrors the BuildSpec in deployment/template.yml, which is what creates the
+# Amplify app upstream. Keeping it in-repo makes the build reproducible and
+# lets the backend build install the runtime the Python functions pin.
 #
-#   1. Amplify console -> App settings -> Build settings -> Download build spec
-#   2. Diff that file against this one
-#   3. Replace this file with the downloaded copy if they differ
-#
-# The Node version (22.17) is selected in the Amplify console, not here.
-# ---------------------------------------------------------------------------
+# Two entries matter and are easy to miss:
+#   - The Amplify AL2023 build image only preinstalls Python 3.8-3.11 (3.10 is
+#     the global default). Every Pipfile pins python_version "3.13", so pipenv
+#     cannot build the functions until 3.13 is installed and selected here.
+#     Upstream bumped the runtime in 432b281; the build spec carries the
+#     matching pyenv/pipenv setup.
+#   - pipenv is pinned to 2026.7.1. Older versions predate 3.12/3.13 support.
 version: 1
 
 backend:
   phases:
     preBuild:
       commands:
+        - '# 14.0.0 enforces SSL on the S3 deployment bucket'
         - npm i -g @aws-amplify/cli@14.0.0
+        - '# Update deployment parameters with helper script'
+        - node parameters.js
+
     build:
       commands:
-        - amplifyPush --simple
+        - npm i -S graphql-ttl-transformer
+
+        - '# AL2023 preinstalls only python 3.8-3.11 (3.10 global); install the target runtime'
+        - pyenv install -s 3.13
+        - pyenv global 3.13
+        - python --version
+
+        - '# Execute Amplify CLI with the helper script'
+        - pip3 install --user pipenv==2026.7.1
+        - export PATH=$HOME/.local/bin:$PATH
+        - pipenv --version
+        # --allow-destructive-graphql-schema-update permits the CLI to remove
+        # models/tables without prompting. It cannot prompt in a build, but it
+        # also removes the safety net: a schema change that drops a @model will
+        # delete its DynamoDB table and data. Review schema diffs before merge.
+        - amplifyPush --simple --allow-destructive-graphql-schema-update
 
 frontend:
   phases:
     preBuild:
-      # Matches current behaviour. Consider `npm ci` for reproducible installs
-      # once the merged lockfile has deployed successfully at least once.
       commands:
-        - npm install
+        # react-scripts is a devDependency in this fork. --include=dev makes the
+        # install explicit so a NODE_ENV=production in the build image cannot
+        # skip the build toolchain.
+        - npm ci --include=dev
     build:
       commands:
         - npm run build

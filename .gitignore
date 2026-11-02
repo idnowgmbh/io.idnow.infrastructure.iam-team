@@ -82,3 +82,11 @@ stacks/hub
 src.egg-info/
 *.egg-info/
 amplify/backend/function/teamapplicationboto3layer/lib/python/lib/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Amplify environment identifiers (account IDs, region, env names).
+# Deliberately untracked in this fork.
+amplify/team-provider-info.json
