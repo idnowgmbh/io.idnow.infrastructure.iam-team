@@ -149,7 +149,7 @@
             {
               "Effect": "Allow",
               "Action": [
-                "sso-admin:ListInstances"
+                "sso:ListInstances"
               ],
               "Resource": "*"
             },

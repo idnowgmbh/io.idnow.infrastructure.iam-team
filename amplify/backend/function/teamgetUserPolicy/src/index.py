@@ -58,7 +58,7 @@ def handler(event, context):
 
     try:
         user_id, group_ids = resolve_caller(identity)
-    except (ClientError, ValueError) as e:
+    except Exception as e:
         # Fail closed: query with no user/group ids so the caller receives an
         # empty policy. Falling back to the client-supplied ids would restore
         # the disclosure this change removes.

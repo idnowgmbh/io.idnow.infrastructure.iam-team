@@ -163,7 +163,7 @@ def handler(event, context):
     # Identity is taken from the request context, never from the arguments.
     try:
         user_id, group_ids = resolve_caller(event.get("identity"))
-    except (ClientError, ValueError) as e:
+    except Exception as e:
         print(f"Unable to resolve caller identity: {e}")
         return {
             "valid": False,
