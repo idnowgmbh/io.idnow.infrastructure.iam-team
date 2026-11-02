@@ -1,0 +1,103 @@
+name: Schema compatibility guard
+
+# The Amplify build runs `amplifyPush --simple --allow-destructive-graphql-schema-update`.
+# That flag exists because a build cannot answer interactive prompts, but it also
+# removes the only confirmation standing between a schema edit and data loss:
+# removing a @model deletes its DynamoDB table and every row in it, and removing
+# an index drops a GSI that has to be rebuilt.
+#
+# This check runs on the pull request instead, where a human can act on it.
+
+on:
+  pull_request:
+    paths:
+      - 'amplify/backend/api/team/schema.graphql'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail if the change removes a model or an index
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --depth=1 origin "$BASE_REF"
+          python3 - <<'PY'
+          import os, re, subprocess, sys
+
+          PATH = "amplify/backend/api/team/schema.graphql"
+          base_ref = os.environ["BASE_REF"]
+
+          def load(ref):
+              return subprocess.check_output(
+                  ["git", "show", f"{ref}:{PATH}"], text=True
+              )
+
+          def parse(src):
+              """Map @model type name -> {fields, indexes}."""
+              models = {}
+              for m in re.finditer(r'^type\s+(\w+)\b(.*?)^}', src, re.S | re.M):
+                  name, body = m.group(1), m.group(2)
+                  # Directive block sits between the type name and the first '{'.
+                  header = body.split("{", 1)[0]
+                  if "@model" not in header:
+                      continue
+                  models[name] = {
+                      "fields": set(re.findall(r'^\s{2}(\w+)\s*:', body, re.M)),
+                      "indexes": set(re.findall(r'name:\s*"([^"]+)"', body)),
+                  }
+              return models
+
+          base = parse(load(f"origin/{base_ref}"))
+          head = parse(load("HEAD"))
+
+          dropped_models = sorted(set(base) - set(head))
+          dropped_indexes = []
+          dropped_fields = []
+          for name in sorted(set(base) & set(head)):
+              for idx in sorted(base[name]["indexes"] - head[name]["indexes"]):
+                  dropped_indexes.append(f"{name}.{idx}")
+              for fld in sorted(base[name]["fields"] - head[name]["fields"]):
+                  dropped_fields.append(f"{name}.{fld}")
+
+          fail = False
+
+          if dropped_models:
+              fail = True
+              print("::error::Schema removes @model type(s). Amplify will DELETE their")
+              print("::error::DynamoDB tables and all data:")
+              for n in dropped_models:
+                  print(f"::error::  - {n}")
+
+          if dropped_indexes:
+              fail = True
+              print("::error::Schema removes index(es)/GSIs, which must be rebuilt:")
+              for n in dropped_indexes:
+                  print(f"::error::  - {n}")
+
+          if dropped_fields:
+              # Amplify keeps the underlying DynamoDB attribute, so this is a
+              # functional break rather than data loss. Surface it, do not block.
+              print("::warning::Schema removes field(s). The stored attributes are kept,")
+              print("::warning::but any code reading them will break:")
+              for n in dropped_fields:
+                  print(f"::warning::  - {n}")
+
+          if fail:
+              print()
+              print("If this is intentional, make it a deliberate change: see")
+              print("amplify.yml and deployment/template.yml for how the build")
+              print("passes --allow-destructive-graphql-schema-update.")
+              sys.exit(1)
+
+          print("No destructive schema changes (no @model or index removals).")
+          print(f"Models in schema: {len(head)}")
+          PY
