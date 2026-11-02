@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource("dynamodb")
 organizations = boto3.client("organizations")
@@ -38,28 +39,26 @@ def get_account_parent_ou(account_id):
 
 
 def get_user_eligibility(user_id, group_ids):
-    """Get all eligibility entries for user and their groups"""
+    """Get all eligibility entries for user and their groups.
+
+    Eligibility records are keyed by a policy UUID; the user/group ID lives in
+    the `entityId` attribute behind the byEntityId GSI. A get_item on `id` with
+    a user ID never matches, so this must query the GSI.
+    """
     eligibility_entries = []
-    
-    # Get user's direct eligibility
-    try:
-        response = eligibility_table.get_item(Key={"id": user_id})
-        if "Item" in response:
-            eligibility_entries.append(response["Item"])
-    except ClientError as e:
-        print(f"Error getting eligibility for user {user_id}: {e}")
-    
-    # Get group eligibilities
-    for group_id in group_ids:
-        if not group_id:
+
+    for entity_id in [user_id] + list(group_ids or []):
+        if not entity_id:
             continue
         try:
-            response = eligibility_table.get_item(Key={"id": group_id})
-            if "Item" in response:
-                eligibility_entries.append(response["Item"])
+            response = eligibility_table.query(
+                IndexName="byEntityId",
+                KeyConditionExpression=Key("entityId").eq(entity_id),
+            )
+            eligibility_entries.extend(response.get("Items", []))
         except ClientError as e:
-            print(f"Error getting eligibility for group {group_id}: {e}")
-    
+            print(f"Error querying eligibility for {entity_id}: {e}")
+
     return eligibility_entries
 
 
