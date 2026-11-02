@@ -150,6 +150,21 @@
             {
               "Effect": "Allow",
               "Action": [
+                "sso-admin:ListInstances"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "identitystore:GetUserId",
+                "identitystore:ListGroupMembershipsForMember"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"

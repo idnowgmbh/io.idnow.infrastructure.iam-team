@@ -103,34 +103,78 @@ def validate_request(account_id, permission_set_id, user_id, group_ids):
     return False, "Account not in user's eligible accounts or OUs"
 
 
+def get_identity_store_id():
+    client = boto3.client("sso-admin")
+    return client.list_instances()["Instances"][0]["IdentityStoreId"]
+
+
+def resolve_caller(identity):
+    """Resolve the caller's Identity Center user id and group ids.
+
+    userId/groupIds are GraphQL arguments and therefore client-controlled.
+    Trusting them let any authenticated user probe another user's, or any
+    group's, eligibility. The shape mirrors teamRouter: the Cognito username is
+    the Identity Center userName with an `idc_` prefix.
+    """
+    username = (identity or {}).get("username")
+    if not username:
+        raise ValueError("No identity username on the request")
+
+    user_name = username[4:] if username.startswith("idc_") else username
+    identity_store_id = get_identity_store_id()
+    client = boto3.client("identitystore")
+
+    user_id = client.get_user_id(
+        IdentityStoreId=identity_store_id,
+        AlternateIdentifier={
+            "UniqueAttribute": {
+                "AttributePath": "userName",
+                "AttributeValue": user_name,
+            }
+        },
+    )["UserId"]
+
+    paginator = client.get_paginator("list_group_memberships_for_member")
+    group_ids = []
+    for page in paginator.paginate(
+        IdentityStoreId=identity_store_id,
+        MemberId={"UserId": user_id},
+    ):
+        group_ids.extend(g["GroupId"] for g in page["GroupMemberships"])
+
+    return user_id, group_ids
+
+
 def handler(event, context):
     print(f"Received event: {json.dumps(event)}")
-    
+
     # Extract request details from GraphQL mutation arguments
     arguments = event.get("arguments", {})
-    
+
     account_id = arguments.get("accountId")
     role_id = arguments.get("roleId")
-    user_id = arguments.get("userId")
-    group_ids = arguments.get("groupIds", [])
-    
+
     if not account_id or not role_id:
         return {
             "valid": False,
             "reason": "Missing accountId or roleId"
         }
-    
-    if not user_id:
+
+    # Identity is taken from the request context, never from the arguments.
+    try:
+        user_id, group_ids = resolve_caller(event.get("identity"))
+    except (ClientError, ValueError) as e:
+        print(f"Unable to resolve caller identity: {e}")
         return {
             "valid": False,
-            "reason": "Missing userId"
+            "reason": "Unable to resolve caller identity"
         }
-    
+
     # Validate the request
     is_valid, reason = validate_request(account_id, role_id, user_id, group_ids)
-    
+
     print(f"Validation result for user {user_id}, account {account_id}, role {role_id}: {is_valid} - {reason}")
-    
+
     return {
         "valid": is_valid,
         "reason": reason

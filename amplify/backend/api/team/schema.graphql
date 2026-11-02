@@ -380,46 +380,77 @@ input PermissionsInput {
 
 type Mutation {
   publishPolicy(result: PolicyInput): Policy
-  @auth(rules: [{ allow: private }])
+  @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   publishOUs(result: OUsInput): OUs
-  @auth(rules: [{ allow: private }])
+  @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   publishPermissions(result: PermissionInput): Permission
-  @auth(rules: [{ allow: private }])
+  @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   invalidateOUCache(ouIds: [String]!): InvalidateCacheResult
   @function(name: "teaminvalidateOUCache-${env}")
   @auth(rules: [{ allow: groups, groups: ["Admin"] }])
+  # The UI calls this as a mutation (RequestService.validateRequest). It stays
+  # private because every signed-in user validates their own request, but the
+  # Lambda now derives the user/group ids from the request identity instead of
+  # trusting the arguments.
   validateRequest(accountId: String!, roleId: String!, userId: String!, groupIds: [String]!): RequestValidationResult
   @function(name: "teamvalidateRequest-${env}")
   @auth(rules: [{ allow: private }])
 }
 
 type Subscription {
+  # Requests are delivered only to the requester, the approvers recorded on the
+  # record, and Auditors. With `allow: private` any signed-in user could
+  # subscribe and receive every request, including justifications, account,
+  # role and the identities of approvers.
   onUpdateRequests: requests
     @aws_subscribe(mutations: ["updateRequests"])
-    @auth(rules: [{ allow: private }])
+    @auth(
+      rules: [
+        { allow: groups, groups: ["Auditors"], operations: [read] }
+        { allow: owner, operations: [read] }
+        { allow: owner, ownerField: "approver_ids", operations: [read] }
+      ]
+    )
   onCreateRequests: requests
     @aws_subscribe(mutations: ["createRequests"])
-    @auth(rules: [{ allow: private }])
+    @auth(
+      rules: [
+        { allow: groups, groups: ["Auditors"], operations: [read] }
+        { allow: owner, operations: [read] }
+        { allow: owner, ownerField: "approver_ids", operations: [read] }
+      ]
+    )
   onUpdateSessions(id: String): sessions
     @aws_subscribe(mutations: ["updateSessions"])
-    @auth(rules: [{ allow: private }])
+    @auth(
+      rules: [
+        { allow: groups, groups: ["Auditors"], operations: [read] }
+        { allow: owner, operations: [read] }
+        { allow: owner, ownerField: "username", operations: [read] }
+        { allow: owner, ownerField: "approver_ids", operations: [read] }
+      ]
+    )
+  # `Policy.username` is set server-side from the caller's Cognito username
+  # (teamgetUserPolicy uses event.identity.username), so owner auth delivers the
+  # eligibility result only to the user who asked for it.
   onPublishPolicy: Policy
     @aws_subscribe(mutations: ["publishPolicy"])
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: owner, ownerField: "username", operations: [read] }])
+  # Only the Administration pages subscribe to these two.
   onPublishOUs: OUs
     @aws_subscribe(mutations: ["publishOUs"])
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"], operations: [read] }])
   onPublishPermissions: Permission
     @aws_subscribe(mutations: ["publishPermissions"])
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"], operations: [read] }])
 }
 type Query {
   getAccounts: [Accounts]
     @function(name: "teamgetAccounts-${env}")
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   getOUs: String
     @function(name: "teamgetOUs-${env}")
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   getOU(id: String): OU
     @function(name: "teamgetOU-${env}")
     @auth(rules: [{ allow: private }])
@@ -431,10 +462,10 @@ type Query {
     @auth(rules: [{ allow: private }])
   getIdCGroups: [IdCGroups]
     @function(name: "teamgetIdCGroups-${env}")
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   getUsers: [Users]
     @function(name: "teamgetUsers-${env}")
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   getLogs(
     queryId: String
   ): [Logs]
@@ -454,9 +485,8 @@ type Query {
   ): Members
     @function(name: "teamListGroups-${env}")
     @auth(rules: [{ allow: private }])
-  updateRequestData: requests
-    @function(name: "teamupdateRequest-${env}")
-    @auth(rules: [{ allow: private }])
+  # updateRequestData was removed: it referenced a Lambda
+  # (teamupdateRequest) that does not exist in this project and had no callers.
   validateRequest(accountId: String!, roleId: String!, userId: String!, groupIds: [String]!): RequestValidationResult
   @function(name: "teamvalidateRequest-${env}")
   @auth(rules: [{ allow: private }])
@@ -464,6 +494,6 @@ type Query {
     ouIds: [String]!
   ): OUAccountsBatch
     @function(name: "teamgetOUAccounts-${env}")
-    @auth(rules: [{ allow: private }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
 }
 
