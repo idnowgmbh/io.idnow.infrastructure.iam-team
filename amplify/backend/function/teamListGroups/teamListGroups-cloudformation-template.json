@@ -15,10 +15,6 @@
     },
     "s3Key": {
       "Type": "String"
-    },
-    "functionteamapplicationboto3layerArn": {
-      "Type": "String",
-      "Default": "functionteamapplicationboto3layerArn"
     }
   },
   "Conditions": {
@@ -85,12 +81,8 @@
             "Arn"
           ]
         },
-        "Runtime": "python3.10",
-        "Layers": [
-          {
-            "Ref": "functionteamapplicationboto3layerArn"
-          }
-        ],
+        "Runtime": "python3.13",
+        "Layers": [],
         "Timeout": 120
       }
     },

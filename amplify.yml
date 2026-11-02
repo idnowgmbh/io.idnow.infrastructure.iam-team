@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------------------
+# RECONSTRUCTED FROM AMPLIFY BUILD LOGS - VERIFY BEFORE MERGING.
+#
+# Amplify prefers this in-repo amplify.yml over the build spec configured in
+# the Amplify console. Committing an inexact copy would silently change how
+# deployments run. Before relying on this file:
+#
+#   1. Amplify console -> App settings -> Build settings -> Download build spec
+#   2. Diff that file against this one
+#   3. Replace this file with the downloaded copy if they differ
+#
+# The Node version (22.17) is selected in the Amplify console, not here.
+# ---------------------------------------------------------------------------
+version: 1
+
+backend:
+  phases:
+    preBuild:
+      commands:
+        - npm i -g @aws-amplify/cli@14.0.0
+    build:
+      commands:
+        - amplifyPush --simple
+
+frontend:
+  phases:
+    preBuild:
+      # Matches current behaviour. Consider `npm ci` for reproducible installs
+      # once the merged lockfile has deployed successfully at least once.
+      commands:
+        - npm install
+    build:
+      commands:
+        - npm run build
+
+  artifacts:
+    baseDirectory: build
+    files:
+      - '**/*'
+
+  cache:
+    paths:
+      - node_modules/**/*

@@ -59,7 +59,7 @@ function Header(props) {
           },
           {
             type: "button",
-            text: "v1.5.0",
+            text: "v1.5.2",
             href: "https://github.com/idnowgmbh/io.idnow.infrastructure.iam-team",
             external: true,
             externalIconAriaLabel: " (opens in a new tab)",
