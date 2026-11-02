@@ -1,0 +1,67 @@
+version: 2
+
+updates:
+  # Frontend + build toolchain.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    # Group routine bumps so we do not get 40 individual PRs per month.
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    # These define the UI and Amplify runtime surface. Major bumps are
+    # breaking (React 17, AWSUI v3, Amplify v5) and must be done as a
+    # deliberate migration, not an automated PR.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-scripts"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@awsui/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "aws-amplify"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@aws-amplify/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "antd"
+        update-types: ["version-update:semver-major"]
+
+  # Lambda dependencies. Only the functions that carry a Pipfile.lock are
+  # listed, because Dependabot needs a lockfile to resolve versions.
+  # The remaining Lambdas pin "*" in their Pipfile and need lockfiles
+  # generated before Dependabot can track them.
+  - package-ecosystem: "pip"
+    directory: "/amplify/backend/function/teamRouter"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "pip"
+    directory: "/amplify/backend/function/teamNotifications"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "pip"
+    directory: "/amplify/backend/function/teamListGroups"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "pip"
+    directory: "/amplify/backend/function/teamgetMgmtAccountDetails"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+
+  # Keep the pinned actions in .github/workflows current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
