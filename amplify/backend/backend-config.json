@@ -111,6 +111,13 @@
       "dependsOn": [
         {
           "attributes": [
+            "NotificationTopicArn"
+          ],
+          "category": "custom",
+          "resourceName": "sns"
+        },
+        {
+          "attributes": [
             "Arn"
           ],
           "category": "function",
@@ -161,21 +168,19 @@
     },
     "teamListGroups": {
       "build": true,
-      "dependsOn": [
-        {
-          "attributes": [
-            "Arn"
-          ],
-          "category": "function",
-          "resourceName": "teamapplicationboto3layer"
-        }
-      ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
     "teamNotifications": {
       "build": true,
       "dependsOn": [
+        {
+          "attributes": [
+            "NotificationTopicArn"
+          ],
+          "category": "custom",
+          "resourceName": "sns"
+        },
         {
           "attributes": [
             "GraphQLAPIIdOutput"
@@ -205,6 +210,13 @@
     "teamRouter": {
       "build": true,
       "dependsOn": [
+        {
+          "attributes": [
+            "NotificationTopicArn"
+          ],
+          "category": "custom",
+          "resourceName": "sns"
+        },
         {
           "attributes": [
             "GraphQLAPIIdOutput",
@@ -264,11 +276,6 @@
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "teamapplicationboto3layer": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "LambdaLayer"
-    },
     "teamgetAccounts": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -281,6 +288,48 @@
           "attributes": [
             "GraphQLAPIIdOutput",
             "GraphQLAPIEndpointOutput"
+          ],
+          "category": "api",
+          "resourceName": "team"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "teamgetOUAccounts": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput"
+          ],
+          "category": "api",
+          "resourceName": "team"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "teaminvalidateOUCache": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput"
+          ],
+          "category": "api",
+          "resourceName": "team"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "teamvalidateRequest": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput"
           ],
           "category": "api",
           "resourceName": "team"
@@ -515,22 +564,6 @@
         {
           "category": "function",
           "resourceName": "teamStatus"
-        }
-      ]
-    },
-    "AMPLIFY_function_teamapplicationboto3layer_deploymentBucketName": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "teamapplicationboto3layer"
-        }
-      ]
-    },
-    "AMPLIFY_function_teamapplicationboto3layer_s3Key": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "teamapplicationboto3layer"
         }
       ]
     },

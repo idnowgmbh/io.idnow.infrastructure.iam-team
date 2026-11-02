@@ -4,8 +4,9 @@
 # Amazon Web Services, Inc. or Amazon Web Services EMEA SARL or both.
 from botocore.exceptions import ClientError
 import boto3
+from datetime import date, datetime
 from operator import itemgetter
-from datetime import datetime
+
 
 
 def get_identiy_store_id():
@@ -20,6 +21,16 @@ def get_identiy_store_id():
 sso_instance = get_identiy_store_id()
 
 
+def jsonify(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    if isinstance(obj, list):
+        return [jsonify(item) for item in obj]
+    if isinstance(obj, dict):
+        return {key: jsonify(value) for key, value in obj.items()}
+    return obj
+
+
 def list_idc_groups(IdentityStoreId):
     try:
         client = boto3.client('identitystore')
@@ -28,22 +39,9 @@ def list_idc_groups(IdentityStoreId):
         all_groups = []
         for page in paginator:
             all_groups.extend(page["Groups"])
-        groups = sorted(all_groups, key=itemgetter('DisplayName'))
-        # Sanitize datetime objects to strings so Lambda can serialize the response
-        return sanitize(groups)
+        return jsonify(sorted(all_groups, key=itemgetter('DisplayName')))
     except ClientError as e:
         print(e.response['Error']['Message'])
-
-
-def sanitize(obj):
-    """Recursively convert datetime objects to ISO format strings."""
-    if isinstance(obj, datetime):
-        return obj.isoformat()
-    elif isinstance(obj, dict):
-        return {k: sanitize(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [sanitize(i) for i in obj]
-    return obj
 
 
 def handler(event, context):

@@ -14,7 +14,7 @@
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^12.8.3",
     "antd": "^4.18.0",
-    "aws-amplify": "^5.3.26",
+    "aws-amplify": "^5.3.33",
     "graphql-ttl-transformer": "^2.0.2",
     "hermes-engine": "0.11.0",
     "moment": "^2.29.1",
@@ -69,6 +69,7 @@
   },
   "overrides": {
     "@svgr/webpack": "^7.0.0",
-    "semver": "^7.5.3"
+    "semver": "^7.5.3",
+    "axios": "^1.19.0"
   }
 }

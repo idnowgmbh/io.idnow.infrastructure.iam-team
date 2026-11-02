@@ -29,6 +29,10 @@ type requests
   duration: String!
   justification: String
   status: String
+  @index(
+    name: "byStatus"
+    queryField: "requestByStatus"
+  )
   @auth(
     rules: [
       { allow: groups, groups: ["Auditors"], operations: [read] }
@@ -172,6 +176,7 @@ type Settings
     )
   teamAdminGroup: String
   teamAuditorGroup: String
+  useOUCache: Boolean
 }
 type data @aws_iam @aws_cognito_user_pools {
   name: String
@@ -206,7 +211,21 @@ type Eligibility
   duration: String
   modifiedBy: String
 }
-type Accounts {
+type OUAccountsCache
+  @model(subscriptions: null, queries: null, mutations: null)
+  # Intentionally has no @auth rules. This model exists only so Amplify provisions
+  # the cache table (and its TTL); queries, mutations and subscriptions are all null,
+  # so no resolvers are generated and there is nothing to authorize. The table is
+  # read and written directly via the DynamoDB SDK by teamgetOUAccounts and
+  # teaminvalidateOUCache, which receive the table name through CACHE_TABLE_NAME.
+  {
+  ou_id: ID! @primaryKey
+  accounts: AWSJSON
+  cached_at: AWSTimestamp
+  ttl: AWSTimestamp @ttl
+  status: String
+}
+type Accounts @aws_iam @aws_cognito_user_pools {
   name: String!
   id: String!
 }
@@ -399,3 +418,4 @@ type Query {
     @function(name: "teamgetOUAccounts-${env}")
     @auth(rules: [{ allow: private }])
 }
+
