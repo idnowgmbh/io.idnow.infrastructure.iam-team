@@ -393,33 +393,30 @@ type Subscription {
     @aws_subscribe(mutations: ["updateRequests"])
     @auth(
       rules: [
-        { allow: groups, groups: ["Auditors"], operations: [read] }
-        { allow: owner, operations: [read] }
-        { allow: owner, ownerField: "approver_ids", operations: [read] }
+        { allow: groups, groups: ["Auditors"] }
+        { allow: owner }
+        { allow: owner, ownerField: "approver_ids" }
       ]
     )
   onCreateRequests: requests
     @aws_subscribe(mutations: ["createRequests"])
     @auth(
       rules: [
-        { allow: groups, groups: ["Auditors"], operations: [read] }
-        { allow: owner, operations: [read] }
-        { allow: owner, ownerField: "approver_ids", operations: [read] }
+        { allow: groups, groups: ["Auditors"] }
+        { allow: owner }
+        { allow: owner, ownerField: "approver_ids" }
       ]
     )
   onUpdateSessions(id: String): sessions
     @aws_subscribe(mutations: ["updateSessions"])
     @auth(
       rules: [
-        { allow: groups, groups: ["Auditors"], operations: [read] }
-        { allow: owner, operations: [read] }
-        { allow: owner, ownerField: "username", operations: [read] }
-        { allow: owner, ownerField: "approver_ids", operations: [read] }
+        { allow: groups, groups: ["Auditors"] }
+        { allow: owner }
+        { allow: owner, ownerField: "username" }
+        { allow: owner, ownerField: "approver_ids" }
       ]
     )
-  # `Policy.username` is set server-side from the caller's Cognito username
-  # (teamgetUserPolicy uses event.identity.username), so owner auth delivers the
-  # eligibility result only to the user who asked for it.
   # Transformer v5 (transform.conf.json Version 5) does not support owner
   # authorization on subscriptions for non-model types, and `Policy` is not a
   # @model. Owner-scoping this field therefore fails schema compilation.
@@ -434,10 +431,10 @@ type Subscription {
   # Only the Administration pages subscribe to these two.
   onPublishOUs: OUs
     @aws_subscribe(mutations: ["publishOUs"])
-    @auth(rules: [{ allow: groups, groups: ["Admin"], operations: [read] }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
   onPublishPermissions: Permission
     @aws_subscribe(mutations: ["publishPermissions"])
-    @auth(rules: [{ allow: groups, groups: ["Admin"], operations: [read] }])
+    @auth(rules: [{ allow: groups, groups: ["Admin"] }])
 }
 type Query {
   getAccounts: [Accounts]
