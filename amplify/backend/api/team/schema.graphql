@@ -138,28 +138,15 @@ type sessions
   id: String!
   startTime: String
   endTime: String
-  # Field-level rules stop the creator from reassigning `username` or
-  # `approver_ids` after creation. Without these, the owner could hand the
-  # record to another identity, or grant/revoke access by rewriting the
-  # approver list (Amplify warns about exactly this at compile time).
+  # No field-level rules here: the model-level rules above already grant no
+  # `update` to any principal (creator [create, read], username owner [read],
+  # approvers [read], Auditors [read]), so `username` and `approver_ids` are
+  # fixed at creation and cannot be reassigned. Field-level rules would be
+  # redundant and add transformer surface.
   username: String
-    @auth(
-      rules: [
-        { allow: groups, groups: ["Auditors"], operations: [read] }
-        { allow: owner, operations: [create, read] }
-        { allow: owner, ownerField: "approver_ids", operations: [read] }
-      ]
-    )
   accountId: String
   role: String
   approver_ids: [String]
-    @auth(
-      rules: [
-        { allow: groups, groups: ["Auditors"], operations: [read] }
-        { allow: owner, operations: [create, read] }
-        { allow: owner, ownerField: "approver_ids", operations: [read] }
-      ]
-    )
   queryId: String
   expireAt: AWSTimestamp @ttl
   # `owner` is auto-generated. Declaring it read-only stops the creator from
@@ -433,9 +420,17 @@ type Subscription {
   # `Policy.username` is set server-side from the caller's Cognito username
   # (teamgetUserPolicy uses event.identity.username), so owner auth delivers the
   # eligibility result only to the user who asked for it.
+  # Transformer v5 (transform.conf.json Version 5) does not support owner
+  # authorization on subscriptions for non-model types, and `Policy` is not a
+  # @model. Owner-scoping this field therefore fails schema compilation.
+  #
+  # Residual exposure: publishPolicy events carry the subscriber's eligibility
+  # result (accounts, permission sets) and are broadcast to any authenticated
+  # subscriber. Closing this properly means returning the policy synchronously
+  # from getUserPolicy instead of publishing it for a subscription to pick up.
   onPublishPolicy: Policy
     @aws_subscribe(mutations: ["publishPolicy"])
-    @auth(rules: [{ allow: owner, ownerField: "username", operations: [read] }])
+    @auth(rules: [{ allow: private }])
   # Only the Administration pages subscribe to these two.
   onPublishOUs: OUs
     @aws_subscribe(mutations: ["publishOUs"])
